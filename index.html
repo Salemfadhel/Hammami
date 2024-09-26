@@ -1,49 +1,100 @@
-<html> 
- <head> 
- </head> 
- <body> <!-- Header Section --> 
-  <header> 
-   <img src="20240921_194841~2.jpg" alt="Charlie Coin Logo"> 
-   <h1>Charlie Coin - CHR</h1> 
-   <p class="tagline">The silent legacy continues, honoring Charlie Chaplin</p> 
-  </header> <!-- Total Supply Section --> 
-  <div class="total-supply"> 
-   <p>Total Supply: 1,000,000,000 CHR</p> 
-  </div> <!-- About Section --> 
-  <div class="about-section"> 
-   <h2>About Charlie Coin</h2> 
-   <p>Charlie Coin (CHR) is a cryptocurrency created in memory of Charlie Chaplin, one of the greatest silent film stars of all time. The aim of this digital currency is to honor Chaplin's enduring legacy and bring a sense of creativity and humor to the blockchain world.</p> 
-  </div> <!-- Market Section --> 
-  <div class="market-section"> 
-   <h2>Market Overview</h2> 
-   <div class="market-details"> 
-    <div class="market-box"> 
-     <h3>Price</h3> 
-     <p>$0.001</p> 
-    </div> 
-    <div class="market-box"> 
-     <h3>Market Cap</h3> 
-     <p>$000,000</p> 
-    </div> 
-    <div class="market-box"> 
-     <h3>Volume 24H</h3> 
-     <p>$000,000</p> 
-    </div> 
-    <div class="market-box"> 
-     <h3>Circulating Supply</h3> 
-     <p>1,000,000,000 CHR</p> 
-    </div> 
-   </div> 
-  </div> <!-- Thumbnails Section --> 
-  <div class="thumbnails"> 
-   <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Chaplin_the_kid.jpg" alt="Chaplin Image 1"> 
-   <img src="https://upload.wikimedia.org/wikipedia/commons/1/1e/Charlie_Chaplin.jpg" alt="Chaplin Image 2"> 
-   <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Charlie_Chaplin_1919.jpg" alt="Chaplin Image 3"> 
-  </div> <!-- Social Links Section --> 
-  <div class="social-links"> <a href="https://x.com/chr_coin" target="_blank">Twitter</a> <a href="https://t.me/chr_coin" target="_blank">Telegram</a> <a href="https://youtube.com/@chr_coin" target="_blank">YouTube</a> 
-  </div> <!-- Footer Section --> 
-  <footer> 
-   <p>© 2024 Charlie Coin. All rights reserved.</p> 
-  </footer> 
- </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charlie Coin (CHR)</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.6.0/web3.min.js"></script>
+    <script src="https://cdn.walletconnect.org/walletconnect-qrcode-modal/1.8.0/umd/index.min.js"></script>
+    <style>
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50; /* Green */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Charlie Coin (CHR)</h1>
+    <p>Total Supply: 1,000,000,000 CHR</p>
+    <p>Smart Contract: <strong>0x1ce6C9567Fa5E4C97a7DaAFF75EAE9A0F2994776</strong></p>
+</header>
+
+<div class="content">
+    <h2>Buy Charlie Coin (CHR)</h2>
+    <input type="text" id="amount" placeholder="Amount in ETH" />
+    <button id="buyButton">Buy CHR</button>
+    <button id="connectButton">Connect Wallet (MetaMask)</button>
+    <button id="walletConnectButton">Connect Wallet (WalletConnect)</button>
+    <div id="walletAddress"></div>
+</div>
+
+<script src="js/script.js"></script>
+
+<script>
+    const contractAddress = "0x1ce6C9567Fa5E4C97a7DaAFF75EAE9A0F2994776"; // Your smart contract address
+    const abi = [ /* Add your smart contract ABI here */ ];
+
+    let web3;
+    let userAccount;
+
+    async function connectWallet() {
+        if (window.ethereum) {
+            web3 = new Web3(window.ethereum);
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAccount = (await web3.eth.getAccounts())[0];
+                document.getElementById('walletAddress').innerText = `Connected: ${userAccount}`;
+            } catch (error) {
+                console.error("User denied account access");
+            }
+        } else {
+            alert('Please install MetaMask!');
+        }
+    }
+
+    async function connectWalletConnect() {
+        const walletConnectProvider = new WalletConnectProvider.default({
+            infuraId: "YOUR_INFURA_PROJECT_ID", // Replace with your Infura Project ID
+        });
+
+        await walletConnectProvider.enable();
+        web3 = new Web3(walletConnectProvider);
+        userAccount = (await web3.eth.getAccounts())[0];
+        document.getElementById('walletAddress').innerText = `Connected: ${userAccount}`;
+    }
+
+    async function buyCHR() {
+        const amount = document.getElementById('amount').value;
+        if (!userAccount) {
+            alert('Please connect your wallet first.');
+            return;
+        }
+        const contract = new web3.eth.Contract(abi, contractAddress);
+
+        try {
+            await contract.methods.buy().send({ from: userAccount, value: web3.utils.toWei(amount, 'ether') });
+            alert('Purchase successful!');
+        } catch (error) {
+            console.error(error);
+            alert('Purchase failed!');
+        }
+    }
+
+    document.getElementById('connectButton').onclick = connectWallet;
+    document.getElementById('buyButton').onclick = buyCHR;
+    document.getElementById('walletConnectButton').onclick = connectWalletConnect;
+</script>
+
+</body>
 </html>
