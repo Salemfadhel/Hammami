@@ -3,98 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Charlie Coin (CHR)</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.6.0/web3.min.js"></script>
-    <script src="https://cdn.walletconnect.org/walletconnect-qrcode-modal/1.8.0/umd/index.min.js"></script>
-    <style>
-        button {
-            padding: 10px 15px;
-            background-color: #4CAF50; /* Green */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+    <title>Create Solana Token</title>
+    <script src="https://unpkg.com/@solana/web3.js@latest"></script>
+    <script src="https://unpkg.com/@solana/spl-token@latest"></script>
 </head>
 <body>
+    <h1>Create Your Token on Solana</h1>
+    <input type="text" id="tokenName" placeholder="Token Name" required>
+    <input type="text" id="tokenSymbol" placeholder="Token Symbol" required>
+    <input type="number" id="tokenSupply" placeholder="Total Supply" required>
+    <button id="createToken">Create Token</button>
 
-<header>
-    <h1>Charlie Coin (CHR)</h1>
-    <p>Total Supply: 1,000,000,000 CHR</p>
-    <p>Smart Contract: <strong>0x1ce6C9567Fa5E4C97a7DaAFF75EAE9A0F2994776</strong></p>
-</header>
+    <script>
+        const createToken = async () => {
+            const name = document.getElementById('tokenName').value;
+            const symbol = document.getElementById('tokenSymbol').value;
+            const supply = parseInt(document.getElementById('tokenSupply').value);
 
-<div class="content">
-    <h2>Buy Charlie Coin (CHR)</h2>
-    <input type="text" id="amount" placeholder="Amount in ETH" />
-    <button id="buyButton">Buy CHR</button>
-    <button id="connectButton">Connect Wallet (MetaMask)</button>
-    <button id="walletConnectButton">Connect Wallet (WalletConnect)</button>
-    <div id="walletAddress"></div>
-</div>
+            // Connect to the wallet
+            const provider = window.solana;
+            if (provider.isPhantom) {
+                await provider.connect();
+                const publicKey = provider.publicKey.toString();
+                
+                // Create a connection to the Solana cluster
+                const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'), 'confirmed');
 
-<script src="js/script.js"></script>
+                // Create the token
+                const mint = await splToken.Token.createMint(
+                    connection,
+                    provider.publicKey,
+                    publicKey,
+                    null,
+                    9, // Decimals
+                    splToken.TOKEN_PROGRAM_ID,
+                );
 
-<script>
-    const contractAddress = "0x1ce6C9567Fa5E4C97a7DaAFF75EAE9A0F2994776"; // Your smart contract address
-    const abi = [ /* Add your smart contract ABI here */ ];
+                // Create an account to hold the tokens
+                const tokenAccount = await mint.getOrCreateAssociatedAccountInfo(publicKey);
 
-    let web3;
-    let userAccount;
+                // Mint tokens to the created account
+                await mint.mintTo(tokenAccount.address, publicKey, [], supply);
 
-    async function connectWallet() {
-        if (window.ethereum) {
-            web3 = new Web3(window.ethereum);
-            try {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                userAccount = (await web3.eth.getAccounts())[0];
-                document.getElementById('walletAddress').innerText = `Connected: ${userAccount}`;
-            } catch (error) {
-                console.error("User denied account access");
+                alert(`Token ${name} (${symbol}) created successfully with supply: ${supply}`);
+            } else {
+                alert('Please install the Phantom wallet.');
             }
-        } else {
-            alert('Please install MetaMask!');
-        }
-    }
+        };
 
-    async function connectWalletConnect() {
-        const walletConnectProvider = new WalletConnectProvider.default({
-            infuraId: "YOUR_INFURA_PROJECT_ID", // Replace with your Infura Project ID
-        });
-
-        await walletConnectProvider.enable();
-        web3 = new Web3(walletConnectProvider);
-        userAccount = (await web3.eth.getAccounts())[0];
-        document.getElementById('walletAddress').innerText = `Connected: ${userAccount}`;
-    }
-
-    async function buyCHR() {
-        const amount = document.getElementById('amount').value;
-        if (!userAccount) {
-            alert('Please connect your wallet first.');
-            return;
-        }
-        const contract = new web3.eth.Contract(abi, contractAddress);
-
-        try {
-            await contract.methods.buy().send({ from: userAccount, value: web3.utils.toWei(amount, 'ether') });
-            alert('Purchase successful!');
-        } catch (error) {
-            console.error(error);
-            alert('Purchase failed!');
-        }
-    }
-
-    document.getElementById('connectButton').onclick = connectWallet;
-    document.getElementById('buyButton').onclick = buyCHR;
-    document.getElementById('walletConnectButton').onclick = connectWalletConnect;
-</script>
-
+        document.getElementById('createToken').onclick = createToken;
+    </script>
 </body>
 </html>
